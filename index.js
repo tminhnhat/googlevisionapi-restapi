@@ -4,6 +4,13 @@ const multer = require('multer');
 const vision = require('@google-cloud/vision');
 const fs = require('fs');
 const app = express();
+const path = require('path');
+
+// Ensure the uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
