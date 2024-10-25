@@ -1,20 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const vision = require('@google-cloud/vision');
 const fs = require('fs');
-const path = require('path');
-require('dotenv').config();
-
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Ensure the uploads directory exists
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-// Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -28,7 +18,16 @@ const upload = multer({ storage });
 // Creates a client
 const client = new vision.ImageAnnotatorClient();
 
-app.post('/analyze', upload.single('image'), async (req, res) => {
+// Middleware to check API key
+const checkApiKey = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    return res.status(403).send('Forbidden: Invalid API key.');
+  }
+  next();
+};
+
+app.post('/analyze', checkApiKey, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).send('No file uploaded.');
@@ -44,12 +43,12 @@ app.post('/analyze', upload.single('image'), async (req, res) => {
       }
     });
 
-    res.json(labels);
+    res.send(labels);
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).send('Error processing image.');
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.listen(3000, () => {
+  console.log('Server started on port 3000');
 });
