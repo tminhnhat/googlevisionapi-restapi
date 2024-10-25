@@ -8,5 +8,4 @@ services:
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules
-    environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=filexacthuc.json
+    env_file: ".env"
